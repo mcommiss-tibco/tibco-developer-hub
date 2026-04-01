@@ -1,0 +1,191 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: workshop-self-service
+  title: AI workshop - create users
+  description: Create user accounts for AI workshop participants on remote servers
+  tags:
+    - workshop
+    - self-service
+    - infrastructure
+    - tibco
+spec:
+  owner: workshop-team
+  type: infrastructure
+
+  parameters:
+    - title: Workshop Information
+      required:
+        - workshopName
+      properties:
+        workshopName:
+          title: Workshop Name
+          type: string
+          description: Name of the workshop
+          ui:autofocus: true
+        description:
+          title: Description
+          type: string
+          description: Brief description of the workshop
+          ui:widget: textarea
+
+    - title: User Management
+      required:
+        - userPrefix
+        - participantCount
+        - userPasswordDefault
+      properties:
+        participantCount:
+          title: Number of Participants
+          type: integer
+          description: Expected number of workshop participants
+          minimum: 1
+          maximum: 100
+          default: 10
+        userPrefix:
+          title: Username prefix
+          type: string
+          description: Prefix for created usernames (e.g., "workshop" results in workshop01, workshop02, etc.)
+          default: 'workshop'
+          pattern: '^[a-zA-Z][a-zA-Z0-9]*$'
+        userPasswordDefault:
+          title: Default User Password
+          type: string
+          description: Default password for created workshop users
+          ui:field: Secret
+          ui:options:
+            showPasswordToggle: true
+          default: 'Tibco@2026'
+        createUsers:
+          title: Create Workshop Users
+          type: boolean
+          description: Whether to create user accounts on the server
+          default: true
+        userShell:
+          title: Default User Shell
+          type: string
+          description: Default shell for created users
+          default: '/bin/bash'
+          enum:
+            - '/bin/bash'
+            - '/bin/sh'
+            - '/bin/zsh'
+
+    - title: Server Configuration
+      required:
+        - serverHost
+        - serverUsername
+        - serverPassword
+      properties:
+        serverHost:
+          title: Workshop Server Host
+          type: string
+          description: Hostname or IP address of the workshop server
+          pattern: '^[a-zA-Z0-9.-]+$'
+        serverUsername:
+          title: Server Username
+          type: string
+          description: SSH username for server access
+        serverPassword:
+          title: Server Password
+          type: string
+          description: SSH password (will be stored securely)
+          ui:field: Secret
+          ui:help: 'This will be stored securely and used only for this workshop setup'
+
+    - title: Additional Activities
+      properties:
+        customScriptPath:
+          title: User Creation Script Path (Optional)
+          type: string
+          description: Path to additional user creation script on the server
+        customScriptArgs:
+          title: User Creation Script Arguments
+          type: string
+          description: Arguments to pass to the user creation script (space-separated)
+
+  steps:
+    - id: log-start
+      name: Starting Workshop Setup
+      action: debug:log
+      input:
+        message: 'Starting workshop setup for "${{ parameters.workshopName }}" with ${{ parameters.participantCount }} participants'
+
+    - id: create-users
+      name: Create Workshop Users
+      if: ${{ parameters.createUsers }}
+      action: workshop:execute-ssh-script
+      input:
+        host: ${{ parameters.serverHost }}
+        username: ${{ parameters.serverUsername }}
+        password: ${{ secrets.serverPassword }}
+        script: '/opt/tibco/scripts/create-workshop-users.sh'
+        scriptArgs:
+          USER_COUNT: ${{ parameters.participantCount }}
+          USER_PREFIX: ${{ parameters.userPrefix }}
+          DEFAULT_PASSWORD: ${{ secrets.userPasswordDefault }}
+          USER_SHELL: ${{ parameters.userShell }}
+          WORKSHOP_NAME: ${{ parameters.workshopName }}
+
+    - id: run-user-create-script
+      name: Execute User Creation Script
+      if: ${{ parameters.customScriptPath }}
+      action: workshop:execute-ssh-script
+      input:
+        host: ${{ parameters.serverHost }}
+        username: ${{ parameters.serverUsername }}
+        password: ${{ secrets.serverPassword }}
+        script: ${{ parameters.customScriptPath }}
+        scriptArgs:
+          WORKSHOP_NAME: ${{ parameters.workshopName }}
+          USER_PREFIX: ${{ parameters.userPrefix }}
+          USER_COUNT: ${{ parameters.participantCount }}
+          CUSTOM_ARGS: ${{ parameters.customScriptArgs }}
+
+    - id: create-summary
+      name: Create Workshop Summary
+      action: fetch:template
+      input:
+        url: ./summary-template
+        values:
+          workshopName: ${{ parameters.workshopName }}
+          serverHost: ${{ parameters.serverHost }}
+          participantCount: ${{ parameters.participantCount }}
+          userPrefix: ${{ parameters.userPrefix }}
+          userPasswordDefault: ${{ secrets.userPasswordDefault }}
+          userShell: ${{ parameters.userShell }}
+          userSummary: ${{ steps['create-users'].output.userSummary || 'Check execution logs for user details' }}
+          exitCode: ${{ steps['create-users'].output.exitCode }}
+          stdout: ${{ steps['create-users'].output.stdout }}
+        targetPath: ./WORKSHOP_SUMMARY.md
+
+  output:
+    text:
+      - title: Workshop Setup Complete
+        content: |
+          # AI Workshop User Creation Complete! 🎉
+          
+          Your workshop user accounts have been successfully created.
+          
+          ## Summary Created
+          A detailed workshop summary has been generated with your specific user account details and configuration.
+          
+          ## What was accomplished:
+          ✅ Created user accounts with sequential numbering  
+          ✅ Set up default passwords for all accounts  
+          ✅ Configured default shell access  
+          ✅ Generated detailed user list with SSH commands
+          
+          ## Next Steps:
+          1. **Review** the detailed summary file created above
+          2. **Test** user accounts by SSH'ing to your workshop server
+          3. **Distribute** login credentials to workshop participants  
+          4. **Begin** your AI workshop activities
+          
+          **The workshop environment is ready!** 🚀
+          
+          > 💡 **Tip:** Check the generated summary file above for the complete list of usernames, passwords, and SSH commands.
+    links:
+      - url: ./WORKSHOP_SUMMARY.md
+        title: Workshop Summary with User Details
+        icon: catalog

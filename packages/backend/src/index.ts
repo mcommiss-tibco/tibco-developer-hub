@@ -22,6 +22,9 @@ backend.add(
 backend.add(
   import('@internal/plugin-scaffolder-backend-module-tibco-git-repositories'),
 );
+backend.add(
+  import('@internal/plugin-scaffolder-backend-module-workshop-tools'),
+);
 backend.add(import('@backstage/plugin-scaffolder-backend'));
 backend.add(import('@backstage/plugin-scaffolder-backend-module-github'));
 backend.add(import('@backstage/plugin-scaffolder-backend-module-gitlab'));

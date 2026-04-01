@@ -4,7 +4,7 @@
 define: &docUrl https://docs.tibco.com/go/platform-cp/1.15.0/doc/html#cshid=developer_hub_overview
 app:
   title: TIBCO® Developer Hub
-  baseUrl: http://localhost:3000
+  baseUrl: http://172.19.92.53:3000
   docUrl: *docUrl
   support:
     url: https://support.tibco.com/s/
@@ -44,6 +44,7 @@ backend:
     origin: 
     - http://localhost:3000
     - http://127.0.0.1:3000
+    - http://172.19.92.53:3000
     methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
     credentials: true
   # database:
@@ -101,7 +102,9 @@ catalog:
         - Domain
         - System
         - Resource
-  locations: []
+  locations: 
+    - type: file
+      target: ../../tibco-examples/workshop-self-service-template/workshop-self-service.yaml
 auth:
   # see https://backstage.io/docs/auth/ to learn about auth providers
   environment: development
