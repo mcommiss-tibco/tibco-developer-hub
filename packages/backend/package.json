@@ -57,6 +57,7 @@
     "@internal/backstage-plugin-scaffolder-backend-module-import-flow": "workspace:^",
     "@internal/plugin-scaffolder-backend-module-metrics-api": "workspace:^",
     "@internal/plugin-scaffolder-backend-module-tibco-git-repositories": "workspace:^",
+    "@internal/plugin-scaffolder-backend-module-workshop-tools": "workspace:^",
     "@keyv/postgres": "^2.1.7",
     "app": "link:../app",
     "better-sqlite3": "^12.5.0",

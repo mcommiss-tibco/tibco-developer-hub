@@ -3526,7 +3526,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/cli@npm:^0.29.2":
+"@backstage/cli@npm:^0.29.0, @backstage/cli@npm:^0.29.2":
   version: 0.29.6
   resolution: "@backstage/cli@npm:0.29.6"
   dependencies:
@@ -8637,6 +8637,20 @@ __metadata:
     axios: "npm:^1.6.7"
     msw: "npm:^1.0.0"
     supertest: "npm:^6.2.4"
+  languageName: unknown
+  linkType: soft
+
+"@internal/plugin-scaffolder-backend-module-workshop-tools@workspace:^, @internal/plugin-scaffolder-backend-module-workshop-tools@workspace:plugins/scaffolder-backend-module-workshop-tools":
+  version: 0.0.0-use.local
+  resolution: "@internal/plugin-scaffolder-backend-module-workshop-tools@workspace:plugins/scaffolder-backend-module-workshop-tools"
+  dependencies:
+    "@backstage/backend-plugin-api": "npm:^1.4.1"
+    "@backstage/cli": "npm:^0.29.0"
+    "@backstage/errors": "npm:^1.2.7"
+    "@backstage/plugin-scaffolder-node": "npm:^0.11.2"
+    "@types/node": "npm:^18.0.0"
+    node-ssh: "npm:^13.1.0"
+    zod: "npm:^3.0.0"
   languageName: unknown
   linkType: soft
 
@@ -17009,7 +17023,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.11.18, @types/node@npm:^18.11.9":
+"@types/node@npm:^18.0.0, @types/node@npm:^18.11.18, @types/node@npm:^18.11.9":
   version: 18.19.130
   resolution: "@types/node@npm:18.19.130"
   dependencies:
@@ -19119,6 +19133,7 @@ __metadata:
     "@internal/backstage-plugin-scaffolder-backend-module-import-flow": "workspace:^"
     "@internal/plugin-scaffolder-backend-module-metrics-api": "workspace:^"
     "@internal/plugin-scaffolder-backend-module-tibco-git-repositories": "workspace:^"
+    "@internal/plugin-scaffolder-backend-module-workshop-tools": "workspace:^"
     "@keyv/postgres": "npm:^2.1.7"
     app: "link:../app"
     better-sqlite3: "npm:^12.5.0"
@@ -28597,6 +28612,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"make-dir@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "make-dir@npm:3.1.0"
+  dependencies:
+    semver: "npm:^6.0.0"
+  checksum: 10c0/56aaafefc49c2dfef02c5c95f9b196c4eb6988040cf2c712185c7fe5c99b4091591a7fc4d4eafaaefa70ff763a26f6ab8c3ff60b9e75ea19876f49b18667ecaa
+  languageName: node
+  linkType: hard
+
 "make-dir@npm:^4.0.0":
   version: 4.0.0
   resolution: "make-dir@npm:4.0.0"
@@ -30373,6 +30397,20 @@ __metadata:
     long-timeout: "npm:0.1.1"
     sorted-array-functions: "npm:^1.3.0"
   checksum: 10c0/6ec51b34b9e676740ac25298e4ced5ee46053379f0d3aad533e51d7e083bc24ced045df1772a95bf9d9cfdb81299340bbf551549a7c5eb6e4d2dc6468c85c70e
+  languageName: node
+  linkType: hard
+
+"node-ssh@npm:^13.1.0":
+  version: 13.2.1
+  resolution: "node-ssh@npm:13.2.1"
+  dependencies:
+    is-stream: "npm:^2.0.0"
+    make-dir: "npm:^3.1.0"
+    sb-promise-queue: "npm:^2.1.0"
+    sb-scandir: "npm:^3.1.0"
+    shell-escape: "npm:^0.2.0"
+    ssh2: "npm:^1.14.0"
+  checksum: 10c0/fcf97f57f8dd387c3aa66ce6abedd38c7c01aef2a020de889750ee7b8178d74267aeca06f60249bbf359d803159be0dbb83d54cf506a1b893be44d5f806ea86a
   languageName: node
   linkType: hard
 
@@ -34530,6 +34568,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sb-promise-queue@npm:^2.1.0":
+  version: 2.1.1
+  resolution: "sb-promise-queue@npm:2.1.1"
+  checksum: 10c0/70da5871fc1b15390c83959366fc4e6d46b7766e95c435a1776eb2a3b4c39c5a99f5e86306a746fd4770a93f23bef30a6c54388769f0429424dcabd3e8bb6cfa
+  languageName: node
+  linkType: hard
+
+"sb-scandir@npm:^3.1.0":
+  version: 3.1.1
+  resolution: "sb-scandir@npm:3.1.1"
+  dependencies:
+    sb-promise-queue: "npm:^2.1.0"
+  checksum: 10c0/4812d1677dc18ef0212276b2069cbe03ed62619c1efa0f62614e1301389bdd255dd5c614e38c14a3b58bf5505021056b6c4cf5f49f01615321b01985d9e0243f
+  languageName: node
+  linkType: hard
+
 "scheduler@npm:^0.23.2":
   version: 0.23.2
   resolution: "scheduler@npm:0.23.2"
@@ -34648,7 +34702,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^6.3.0, semver@npm:^6.3.1":
+"semver@npm:^6.0.0, semver@npm:^6.3.0, semver@npm:^6.3.1":
   version: 6.3.1
   resolution: "semver@npm:6.3.1"
   bin:
@@ -34889,6 +34943,13 @@ __metadata:
   version: 3.0.0
   resolution: "shebang-regex@npm:3.0.0"
   checksum: 10c0/1dbed0726dd0e1152a92696c76c7f06084eb32a90f0528d11acd764043aacf76994b2fb30aa1291a21bd019d6699164d048286309a278855ee7bec06cf6fb690
+  languageName: node
+  linkType: hard
+
+"shell-escape@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "shell-escape@npm:0.2.0"
+  checksum: 10c0/501616713d13fd053b3858da18b613d83bfcdc8368e62be393dc563cc9fe2550492d403f73211e9a84429f39c8b9617f1e016dabee177b0ebdcb298fa47fc612
   languageName: node
   linkType: hard
 
@@ -35265,7 +35326,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ssh2@npm:^1.11.0, ssh2@npm:^1.15.0, ssh2@npm:^1.4.0":
+"ssh2@npm:^1.11.0, ssh2@npm:^1.14.0, ssh2@npm:^1.15.0, ssh2@npm:^1.4.0":
   version: 1.17.0
   resolution: "ssh2@npm:1.17.0"
   dependencies:
@@ -38567,7 +38628,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.22.4, zod@npm:^3.23.8, zod@npm:^3.24.2, zod@npm:^3.25.76":
+"zod@npm:^3.0.0, zod@npm:^3.22.4, zod@npm:^3.23.8, zod@npm:^3.24.2, zod@npm:^3.25.76":
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
