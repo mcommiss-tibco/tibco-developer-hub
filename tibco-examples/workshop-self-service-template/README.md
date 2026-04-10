@@ -239,7 +239,7 @@ You can extend the template to integrate with:
 2. **Test SSH Connection Manually**
    ```bash
    ssh username@server-host
-   sudo /opt/tibco/scripts/create-workshop-users.sh
+   sudo /opt/scripts/create-workshop-users.sh
    ```
 
 3. **Validate Script Variables**

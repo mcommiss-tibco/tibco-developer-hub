@@ -2,8 +2,8 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: workshop-self-service
-  title: AI workshop - create users
-  description: Create user accounts for AI workshop participants on remote servers
+  title: Workshop Self-Service Portal
+  description: Self-service portal for workshop activities including server setup and user management
   tags:
     - workshop
     - self-service
@@ -17,24 +17,19 @@ spec:
     - title: Workshop Information
       required:
         - workshopName
+        - workshopDate
+        - participantCount
       properties:
         workshopName:
           title: Workshop Name
           type: string
           description: Name of the workshop
           ui:autofocus: true
-        description:
-          title: Description
+        workshopDate:
+          title: Workshop Date
           type: string
-          description: Brief description of the workshop
-          ui:widget: textarea
-
-    - title: User Management
-      required:
-        - userPrefix
-        - participantCount
-        - userPasswordDefault
-      properties:
+          format: date
+          description: Date when the workshop will be held
         participantCount:
           title: Number of Participants
           type: integer
@@ -42,20 +37,50 @@ spec:
           minimum: 1
           maximum: 100
           default: 10
-        userPrefix:
-          title: Username prefix
+        description:
+          title: Description
           type: string
-          description: Prefix for created usernames (e.g., "workshop" results in workshop01, workshop02, etc.)
-          default: 'workshop'
-          pattern: '^[a-zA-Z][a-zA-Z0-9]*$'
+          description: Brief description of the workshop
+          ui:widget: textarea
+
+    - title: Server Configuration
+      required:
+        - serverHost
+        - serverUsername
+        - userPasswordDefault
+      properties:
+        serverHost:
+          title: Workshop Server Host
+          type: string
+          description: Hostname or IP address of the workshop server
+          pattern: '^[a-zA-Z0-9.-]+$'
+        serverUsername:
+          title: Server Username
+          type: string
+          description: SSH username for server access
+        serverPassword:
+          title: Server Password
+          type: string
+          description: SSH password (will be stored securely)
+          ui:widget: password
+          ui:help: 'This will be stored securely and used only for this workshop setup'
         userPasswordDefault:
           title: Default User Password
           type: string
           description: Default password for created workshop users
-          ui:field: Secret
-          ui:options:
-            showPasswordToggle: true
-          default: 'Tibco@2026'
+          ui:widget: password
+          default: 'Workshop2024!'
+
+    - title: User Management
+      required:
+        - userPrefix
+      properties:
+        userPrefix:
+          title: User Prefix
+          type: string
+          description: Prefix for created usernames (e.g., "workshop" results in workshop01, workshop02, etc.)
+          default: 'workshop'
+          pattern: '^[a-zA-Z][a-zA-Z0-9]*$'
         createUsers:
           title: Create Workshop Users
           type: boolean
@@ -71,38 +96,31 @@ spec:
             - '/bin/sh'
             - '/bin/zsh'
 
-    - title: Server Configuration
-      required:
-        - serverHost
-        - serverUsername
-        - serverPassword
-      properties:
-        serverHost:
-          title: Workshop Server Host
-          type: string
-          description: Hostname or IP address of the workshop server
-          pattern: '^[a-zA-Z0-9.-]+$'
-        serverUsername:
-          title: Server Username
-          type: string
-          description: SSH username for server access
-        serverPassword:
-          title: Server Password
-          type: string
-          description: SSH password (will be stored securely)
-          ui:field: Secret
-          ui:help: 'This will be stored securely and used only for this workshop setup'
-
     - title: Additional Activities
       properties:
+        setupDockerEnvironment:
+          title: Setup Docker Environment
+          type: boolean
+          description: Install and configure Docker for workshop users
+          default: false
+        installWorkshopTools:
+          title: Install Workshop Tools
+          type: boolean
+          description: Install additional tools and software for the workshop
+          default: false
+        createSharedFolder:
+          title: Create Shared Folder
+          type: boolean
+          description: Create a shared folder for workshop materials
+          default: true
         customScriptPath:
-          title: User Creation Script Path (Optional)
+          title: Custom Script Path (Optional)
           type: string
-          description: Path to additional user creation script on the server
+          description: Path to additional custom setup script on the server
         customScriptArgs:
-          title: User Creation Script Arguments
+          title: Custom Script Arguments
           type: string
-          description: Arguments to pass to the user creation script (space-separated)
+          description: Arguments to pass to the custom script (space-separated)
 
   steps:
     - id: log-start
@@ -118,23 +136,62 @@ spec:
       input:
         host: ${{ parameters.serverHost }}
         username: ${{ parameters.serverUsername }}
-        password: ${{ secrets.serverPassword }}
-        script: '/opt/tibco/scripts/create-workshop-users.sh'
+        password: ${{ parameters.serverPassword }}
+        script: '/opt/scripts/create-workshop-users.sh'
         scriptArgs:
           USER_COUNT: ${{ parameters.participantCount }}
           USER_PREFIX: ${{ parameters.userPrefix }}
-          DEFAULT_PASSWORD: ${{ secrets.userPasswordDefault }}
+          DEFAULT_PASSWORD: ${{ parameters.userPasswordDefault }}
           USER_SHELL: ${{ parameters.userShell }}
           WORKSHOP_NAME: ${{ parameters.workshopName }}
 
-    - id: run-user-create-script
-      name: Execute User Creation Script
+    - id: setup-docker
+      name: Setup Docker Environment
+      if: ${{ parameters.setupDockerEnvironment }}
+      action: workshop:execute-ssh-script
+      input:
+        host: ${{ parameters.serverHost }}
+        username: ${{ parameters.serverUsername }}
+        password: ${{ parameters.serverPassword }}
+        script: '/opt/scripts/setup-docker.sh'
+        scriptArgs:
+          USER_PREFIX: ${{ parameters.userPrefix }}
+          USER_COUNT: ${{ parameters.participantCount }}
+
+    - id: install-tools
+      name: Install Workshop Tools
+      if: ${{ parameters.installWorkshopTools }}
+      action: workshop:execute-ssh-script
+      input:
+        host: ${{ parameters.serverHost }}
+        username: ${{ parameters.serverUsername }}
+        password: ${{ parameters.serverPassword }}
+        script: '/opt/scripts/install-workshop-tools.sh'
+        scriptArgs:
+          WORKSHOP_NAME: ${{ parameters.workshopName }}
+
+    - id: create-shared-folder
+      name: Create Shared Workshop Folder
+      if: ${{ parameters.createSharedFolder }}
+      action: workshop:execute-ssh-script
+      input:
+        host: ${{ parameters.serverHost }}
+        username: ${{ parameters.serverUsername }}
+        password: ${{ parameters.serverPassword }}
+        script: '/opt/scripts/create-shared-folder.sh'
+        scriptArgs:
+          WORKSHOP_NAME: ${{ parameters.workshopName }}
+          USER_PREFIX: ${{ parameters.userPrefix }}
+          USER_COUNT: ${{ parameters.participantCount }}
+
+    - id: run-custom-script
+      name: Execute Custom Setup Script
       if: ${{ parameters.customScriptPath }}
       action: workshop:execute-ssh-script
       input:
         host: ${{ parameters.serverHost }}
         username: ${{ parameters.serverUsername }}
-        password: ${{ secrets.serverPassword }}
+        password: ${{ parameters.serverPassword }}
         script: ${{ parameters.customScriptPath }}
         scriptArgs:
           WORKSHOP_NAME: ${{ parameters.workshopName }}
@@ -142,50 +199,61 @@ spec:
           USER_COUNT: ${{ parameters.participantCount }}
           CUSTOM_ARGS: ${{ parameters.customScriptArgs }}
 
-    - id: create-summary
-      name: Create Workshop Summary
-      action: fetch:template
+    - id: generate-summary
+      name: Generate Workshop Summary
+      action: debug:log
       input:
-        url: ./summary-template
-        values:
-          workshopName: ${{ parameters.workshopName }}
-          serverHost: ${{ parameters.serverHost }}
-          participantCount: ${{ parameters.participantCount }}
-          userPrefix: ${{ parameters.userPrefix }}
-          userPasswordDefault: ${{ secrets.userPasswordDefault }}
-          userShell: ${{ parameters.userShell }}
-          userSummary: ${{ steps['create-users'].output.userSummary || 'Check execution logs for user details' }}
-          exitCode: ${{ steps['create-users'].output.exitCode }}
-          stdout: ${{ steps['create-users'].output.stdout }}
-        targetPath: ./WORKSHOP_SUMMARY.md
+        message: |
+          Workshop "${{ parameters.workshopName }}" setup completed successfully!
+          
+          Configuration:
+          - Server: ${{ parameters.serverHost }}
+          - Participants: ${{ parameters.participantCount }}
+          - User prefix: ${{ parameters.userPrefix }}
+          - Users created: ${{ parameters.createUsers }}
+          - Docker setup: ${{ parameters.setupDockerEnvironment }}
+          - Workshop tools: ${{ parameters.installWorkshopTools }}
+          - Shared folder: ${{ parameters.createSharedFolder }}
+          
+          User accounts (if created):
+          ${{ parameters.userPrefix }}01 through ${{ parameters.userPrefix }}${{ parameters.participantCount | string | padStart(2, '0') }}
+          Default password: [REDACTED]
 
   output:
     text:
-      - title: Workshop Setup Complete
+      - title: Workshop Setup Summary
         content: |
-          # AI Workshop User Creation Complete! 🎉
+          ## Workshop "${{ parameters.workshopName }}" Setup Complete! 🎉
           
-          Your workshop user accounts have been successfully created.
+          **Server Information:**
+          - Host: `${{ parameters.serverHost }}`
+          - Date: ${{ parameters.workshopDate }}
+          - Participants: ${{ parameters.participantCount }}
           
-          ## Summary Created
-          A detailed workshop summary has been generated with your specific user account details and configuration.
+          **User Accounts:**
+          {% if parameters.createUsers %}
+          Created user accounts from `${{ parameters.userPrefix }}01` to `${{ parameters.userPrefix }}${{ parameters.participantCount | string | padStart(2, '0') }}`
+          - Default password: `${{ parameters.userPasswordDefault }}`
+          - Shell: `${{ parameters.userShell }}`
+          {% else %}
+          No user accounts created.
+          {% endif %}
           
-          ## What was accomplished:
-          ✅ Created user accounts with sequential numbering  
-          ✅ Set up default passwords for all accounts  
-          ✅ Configured default shell access  
-          ✅ Generated detailed user list with SSH commands
+          **Additional Setup:**
+          {% if parameters.setupDockerEnvironment %}✅ Docker environment configured{% endif %}
+          {% if parameters.installWorkshopTools %}✅ Workshop tools installed{% endif %}
+          {% if parameters.createSharedFolder %}✅ Shared workshop folder created{% endif %}
+          {% if parameters.customScriptPath %}✅ Custom script executed: `${{ parameters.customScriptPath }}`{% endif %}
           
-          ## Next Steps:
-          1. **Review** the detailed summary file created above
-          2. **Test** user accounts by SSH'ing to your workshop server
-          3. **Distribute** login credentials to workshop participants  
-          4. **Begin** your AI workshop activities
+          **Next Steps:**
+          1. Test user accounts by logging into the server
+          2. Verify all workshop tools are working
+          3. Distribute login credentials to participants
+          4. Prepare workshop materials in the shared folder
           
-          **The workshop environment is ready!** 🚀
-          
-          > 💡 **Tip:** Check the generated summary file above for the complete list of usernames, passwords, and SSH commands.
+          The workshop environment is ready! 🚀
+
     links:
-      - url: ./WORKSHOP_SUMMARY.md
-        title: Workshop Summary with User Details
-        icon: catalog
+      - title: SSH to Workshop Server
+        url: 'ssh://${{ parameters.serverUsername }}@${{ parameters.serverHost }}'
+        icon: terminal
